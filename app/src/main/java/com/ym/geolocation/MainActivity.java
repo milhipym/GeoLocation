@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.ym.geolocation.Upmoo.UpmooService;
+import com.ym.geolocation.Util.ImageUtils;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
     };
-
+    public static Context  mContext;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         mFirebaseCrashlytics.log("MainActivity_onCreate()..");
         //#1. 레이아웃ID 설정
         setinitView();
+        mContext = getApplicationContext();
         //#2. 업무앱 리스트
         UpmooService upmooService = new UpmooService(this, getApplicationContext());
         upmooService.init();
@@ -126,7 +128,8 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
                 //subwebView.loadUrl("file:///android_asset/www/04_test.html");
                 //subwebView.loadUrl("https://m.naver.com");
-                Intent i = new Intent(MainActivity.this, PopWebViewActivity.class);
+                Intent i = new Intent();
+                i.setClass(MainActivity.this, PopWebViewActivity.class);
                 startActivity(i);
             }
         });
@@ -146,91 +149,22 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     ActivityResultLauncher<Intent> mainActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
+                ImageUtils imageUtils = new ImageUtils(getApplicationContext());
                 @Override
                 public void onActivityResult(ActivityResult o) {
                     if (o.getResultCode() == Activity.RESULT_OK) {
                         Intent data = o.getData();
-                        Cursor cursor = null;
-                        String[] proj = {MediaStore.Images.Media.DATA};
-                        File tempFile = null;
-
-                        //갤럭시노트10S ==> dat=content://com.android.providers.media.documents/document/image:51480 flg=0x1
-                        Log.e("YYYM", "onActivityResult: " + data);
-                        //assert data != null;
                         if (data != null) {
-                            Uri uriPath = data.getData();
-                            try {
-                                ClipData clipData = data.getClipData();
-                                if (clipData != null) {
-                                    int size = clipData.getItemCount();
-                                    for (int i = 0; i < size; i++) {
-                                        //#1.uri to file 스크마로 contents:/// -> file:///
-                                        //content://media/picker/0/com.android.providers.media.photopicker/media/1000002871
-                                        Log.e("YYYM", "clipData.getItemAt(i).getUri(): " + clipData.getItemAt(i).getUri());
-                                        Uri imgUri = clipData.getItemAt(i).getUri();
-/*                                        cursor = getContentResolver().query(imgUri, proj, null, null, null);
-                                        if (cursor != null)
-                                        {
-                                            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                                            Log.e("YYYM", "cursor: " + cursor+", inx:"+column_index);
-                                            cursor.moveToFirst();
-
-                                            File tempFile = new File(cursor.getString(column_index));
-                                            Log.e("YYYM", "tempFile.getAbsolutePath(): " + tempFile.getAbsolutePath() );
-
-                                            Bitmap bm = BitmapFactory.decodeFile(tempFile.getAbsolutePath());
-                                            Log.e("YYYM", "bm.getWidth(): " + bm.getWidth() +", bm.getHeight():" + bm.getHeight());
-                                        }*/
-
-                                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), imgUri);
-                                        Log.e("YYYM", "onActivityResult: " + bitmap.getHeight());
-                                        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, true);
-                                        ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                                        resizeBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bo);
-
-                                        String fileName = String.valueOf(System.currentTimeMillis());
-                                        tempFile = File.createTempFile(fileName, ".jpg", getExternalFilesDir(Environment.DIRECTORY_DCIM));
-
-                                        FileOutputStream fo = new FileOutputStream(tempFile);
-                                        fo.write(bo.toByteArray());
-                                        fo.close();
-
-                                        //file:///storage/emulated/0/Android/data/com.ym.geolocation/files/DCIM/17035811929726197426884614800500jpg
-                                        Log.e("YYYM", "real_tempFile: " + Uri.fromFile(tempFile));
-                                        //업로드 후 파일삭제 코드 들어가야함.
-                                    }
-                                    if (cursor != null) {
-                                        cursor.close();
-                                    }
-                                } else if (uriPath != null) {
-
-                                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uriPath);
-                                    Log.e("YYYM", "onActivityResult_uriPath: " + bitmap.getHeight());
-                                    Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, true);
-                                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                                    resizeBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bo);
-
-                                    String fileName = String.valueOf(System.currentTimeMillis());
-                                    tempFile = File.createTempFile(fileName, ".jpg", getExternalFilesDir(Environment.DIRECTORY_DCIM));
-
-                                    FileOutputStream fo = new FileOutputStream(tempFile);
-                                    fo.write(bo.toByteArray());
-                                    fo.close();
-                                    Log.e("YYYM", "uriPath_real_tempFile: " + Uri.fromFile(tempFile));
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                if (cursor != null) {
-                                    cursor.close();
-                                }
-                            } finally {
-                                if (tempFile != null) {
-                                    if (tempFile.delete()) {
-                                        Log.e("YYYM", "임시 파일 삭제 성공");
-                                    }
-                                }
+                            ClipData clipData = data.getClipData();
+                            if (clipData != null) {
+                                imageUtils.handleClipData(clipData);
+                            } else {
+                                Uri uriPath = data.getData();
+                                imageUtils.handleSingleUri(uriPath);
                             }
                         }
+                        //갤럭시노트10S ==> dat=content://com.android.providers.media.documents/document/image:51480 flg=0x1
+                        Log.e("YYYM", "onActivityResult: " + data);
                     }
                 }
             });
@@ -305,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     }
 
     //퍼미션 하나 요청할떄
-    /*    ActivityResultLauncher<String> accessFineLocationPermissionContract
+/*        ActivityResultLauncher<String> accessFineLocationPermissionContract
     = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isPermissionAccepted -> {
             if (isPermissionAccepted) {
                 Log.e("YYYM", "permission__: " + isPermissionAccepted);
