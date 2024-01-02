@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
     };
-    public static Context  mContext;
+    ImageUtils imageUtils ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         mFirebaseCrashlytics.log("MainActivity_onCreate()..");
         //#1. 레이아웃ID 설정
         setinitView();
-        mContext = getApplicationContext();
+        imageUtils = new ImageUtils(getApplicationContext());
         //#2. 업무앱 리스트
         UpmooService upmooService = new UpmooService(this, getApplicationContext());
         upmooService.init();
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     callGalleryIntent.setAction(Intent.ACTION_GET_CONTENT);
                 }
                 //startActivityForResult(callGalleryIntent, 1000);
-                mainActivityResultLauncher.launch(callGalleryIntent);
+                getImageFileToGalleryResultLauncher.launch(callGalleryIntent);
             }
         });
         //#2. 두번쨰 방법 - startActivityForResult deprecated
@@ -146,10 +146,9 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         });
     }
 
-    ActivityResultLauncher<Intent> mainActivityResultLauncher = registerForActivityResult(
+    ActivityResultLauncher<Intent> getImageFileToGalleryResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
-                ImageUtils imageUtils = new ImageUtils(getApplicationContext());
                 @Override
                 public void onActivityResult(ActivityResult o) {
                     if (o.getResultCode() == Activity.RESULT_OK) {

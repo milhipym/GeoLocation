@@ -17,7 +17,9 @@ public class ImageUtils {
     public ImageUtils(Context applicationContext) {
         mContext = applicationContext;
     }
-
+/*
+* 갤러리----------------------------------------------------------
+* */
     public void handleClipData(ClipData clipData) {
         int size = clipData.getItemCount();
         for (int i = 0; i < size; i++) {
