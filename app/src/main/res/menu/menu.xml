@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/today"
+        android:enabled="true"
+        android:icon="@drawable/b"
+        android:title="@string/menu_one"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/today2"
+        android:enabled="true"
+        android:icon="@drawable/b"
+        android:title="@string/menu_two"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/today3"
+        android:enabled="true"
+        android:icon="@drawable/b"
+        android:title="@string/menu_thr"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/today4"
+        android:enabled="true"
+        android:icon="@drawable/b"
+        android:title="@string/menu_fou"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/today5"
+        android:enabled="true"
+        android:icon="@drawable/b"
+        android:title="@string/menu_fiv"
+        app:showAsAction="always"/>
+
+</menu>

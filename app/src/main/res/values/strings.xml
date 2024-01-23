@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">GeoLocation</string>
+
+    <string name="menu_one">메뉴1</string>
+    <string name="menu_two">메뉴2</string>
+    <string name="menu_thr">메뉴3</string>
+    <string name="menu_fou">메뉴4</string>
+    <string name="menu_fiv">메뉴5</string>
 </resources>

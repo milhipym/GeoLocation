@@ -17,7 +17,7 @@
             android:layout_height="150dp"
             android:fitsSystemWindows="true"
             android:background="#F8F9FA"
-            app:title="35º32%"
+            app:title="35º132%"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/aaa"
@@ -194,7 +194,7 @@
                     android:id="@+id/btn1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="이미지호출"
+                    android:text="이미지호출1"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/btn2"
                     app:layout_constraintTop_toTopOf="parent"
@@ -203,7 +203,7 @@
                     android:id="@+id/btn2"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="3DView"
+                    android:text="이미지호출2"
                     app:layout_constraintStart_toEndOf="@+id/btn1"
                     app:layout_constraintEnd_toStartOf="@+id/btn3"
                     app:layout_constraintTop_toTopOf="parent"
@@ -212,17 +212,8 @@
                     android:id="@+id/btn3"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="3DGoo"
+                    android:text="3DView"
                     app:layout_constraintStart_toEndOf="@+id/btn2"
-                    app:layout_constraintEnd_toStartOf="@+id/btn4"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btn4"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="화면켜짐"
-                    app:layout_constraintStart_toEndOf="@+id/btn3"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     />

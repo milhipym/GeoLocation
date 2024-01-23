@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,12 +37,19 @@ import androidx.core.content.ContextCompat;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.inappmessaging.FirebaseInAppMessaging;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.ym.geolocation.Upmoo.UpmooService;
 import com.ym.geolocation.Util.ImageUtils;
+import com.ym.geolocation.push.MyClickListener;
+import com.ym.geolocation.wakelock.WakeLock;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,7 +60,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
 
-    Button btn1, btn2, btn3;
+    Button btn1, btn2, btn3, btn4;
     private ActivityResultLauncher<Intent> resultLauncher;
     private static final MapPoint CUSTOM_MARKER_POINT = MapPoint.mapPointWithGeoCoord(37.537229, 127.005515);
     double latitude = 0.0;
@@ -64,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             android.Manifest.permission.ACCESS_COARSE_LOCATION
     };
     ImageUtils imageUtils ;
+    WakeLock wakeLock;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +90,21 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         //#3. 위치권한요청
         accessFineLocationPermissionContract.launch(LOCATION_PERMISSIONS_REQUESTED);
         //getPoint();
+        //#4. FCM_TOKEN
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e("YYYM", "getToken_FAil ");
+                return;
+            }else {
+                Log.e("YYYM", "token_result: " + task.getResult() );
+            }
+
+        });
+        Log.e("YYYM", "getToken: " + FirebaseMessaging.getInstance().getToken());
+
+        MyClickListener listener = new MyClickListener();
+        FirebaseInAppMessaging.getInstance().addClickListener(listener);
+        FirebaseInAppMessaging.getInstance().triggerEvent("first_Test");
         resultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -89,6 +113,8 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                 }
             }
         });
+        //#5.WAKELOCK
+        wakeLock = new WakeLock(getApplicationContext(), this);
     }
 
     private void setinitView() {
@@ -100,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         btn1 = findViewById(R.id.btn1);
         btn2 = findViewById(R.id.btn2);
         btn3 = findViewById(R.id.btn3);
+        btn4 = findViewById(R.id.btn4);
         //GalleryControler galleryControler = new GalleryControler(this ,btn1, btn2, btn3);
         //#1. 첫번째 방법
         btn1.setOnClickListener(new View.OnClickListener() {
@@ -111,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     callGalleryIntent = new Intent(MediaStore.ACTION_PICK_IMAGES);
                     callGalleryIntent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10);
                 } else {
+                    Log.e("YYYM", "포토피커 옵션이 아님");
                     callGalleryIntent = new Intent(Intent.ACTION_PICK);
                     callGalleryIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
                     callGalleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -124,10 +152,6 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //subwebView = findViewById(R.id.subwebview);
-
-                //subwebView.loadUrl("file:///android_asset/www/04_test.html");
-                //subwebView.loadUrl("https://m.naver.com");
                 Intent i = new Intent();
                 i.setClass(MainActivity.this, PopWebViewActivity.class);
                 startActivity(i);
@@ -142,6 +166,13 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                 sceneViewerIntent.setData(Uri.parse("https://arvr.google.com/scene-viewer/1.0?file=https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF/Avocado.gltf"));
                 sceneViewerIntent.setPackage("com.google.android.googlequicksearchbox");
                 startActivity(sceneViewerIntent);
+            }
+        });
+
+        btn4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                wakeLock.requestKeepScreen();
             }
         });
     }
@@ -262,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             if (allPermissionsGranted) {getPoint();}
             else {
                 Log.e("YYYM", "permission_FAIL");
-                //필수권한일떄 다시 요청
+                //필수 권한 일 떄 다시 요청
             }
     });
 
@@ -279,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         marker.setTag(0);
         marker.setMapPoint(CUSTOM_MARKER_POINT);
         marker.setMarkerType(MapPOIItem.MarkerType.BluePin); // 기본으로 제공하는 BluePin 마커 모양.
-        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭했을때, 기본으로 제공하는 RedPin 마커 모양.
+        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭 했을 때, 기본으로 제공하는 RedPin 마커 모양.
 
         mapView.addPOIItem(marker);
 
@@ -359,5 +390,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     @Override
     public void onMapViewMoveFinished(MapView mapView, MapPoint mapPoint) {
         //Log.e("YYYM", "onMapViewMoveFinished: ");
+    }
+
+    @Override
+    protected void onDestroy() {
+        wakeLock.requestOffScreen();
+        super.onDestroy();
     }
 }

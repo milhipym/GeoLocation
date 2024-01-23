@@ -26,7 +26,17 @@
         </activity>
         <activity android:name=".PopWebViewActivity" android:theme="@style/Theme.GeoLocation" android:exported="false"/>
         <meta-data android:name="com.kakao.sdk.AppKey" android:value="c9b0c5407474dd59696720722c2f8dd2"/>
+
+        <service
+            android:name=".push.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="firebase_inapp_messaging_auto_data_collection_enabled"
+            android:value="true" />
     </application>
-
-
 </manifest>
